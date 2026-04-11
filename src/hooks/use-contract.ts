@@ -43,7 +43,7 @@ export function useContract() {
     if (!contract) return [];
     const elections: Election[] = [];
     let consecutiveFailures = 0;
-    for (let i = 1; consecutiveFailures < 3; i++) {
+    for (let i = 0; consecutiveFailures < 3; i++) {
       try {
         const e = await contract.getElection(i);
         const candidates = await contract.getAllCandidates(i);
