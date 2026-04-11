@@ -32,6 +32,11 @@ export const Route = createRootRoute({
       { property: "og:title", content: "ChainVote — Decentralized Voting DApp" },
       { property: "og:description", content: "Secure blockchain voting on Ethereum Sepolia testnet" },
       { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "ChainVote — Decentralized Voting DApp" },
+      { name: "twitter:description", content: "Secure blockchain voting on Ethereum Sepolia testnet" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/192d90de-0504-405f-a509-2e5d95e6bd1a/id-preview-15acc913--dcf64b55-66a4-4df0-87de-7c0766c71a80.lovable.app-1775912575293.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/192d90de-0504-405f-a509-2e5d95e6bd1a/id-preview-15acc913--dcf64b55-66a4-4df0-87de-7c0766c71a80.lovable.app-1775912575293.png" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
