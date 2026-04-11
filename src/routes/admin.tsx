@@ -196,16 +196,26 @@ function AdminPage() {
           </div>
 
           <div className="glass rounded-2xl p-6">
-            <h2 className="mb-4 font-display text-lg font-bold">Add Candidate</h2>
+            <h2 className="mb-4 font-display text-lg font-bold">Add Candidates</h2>
             <div className="space-y-4">
               <div>
                 <label className="mb-1 block text-xs text-muted-foreground">Election ID</label>
-                <Input type="number" placeholder="1" value={candElectionId} onChange={(e) => setCandElectionId(e.target.value)} className="bg-muted/30 border-border/50" />
+                <Input type="number" placeholder="0" value={candElectionId} onChange={(e) => setCandElectionId(e.target.value)} className="bg-muted/30 border-border/50" />
               </div>
-              <Input placeholder="Candidate name" value={candName} onChange={(e) => setCandName(e.target.value)} className="bg-muted/30 border-border/50" />
-              <Input placeholder="Candidate description" value={candDesc} onChange={(e) => setCandDesc(e.target.value)} className="bg-muted/30 border-border/50" />
-              <Button onClick={handleAddCandidate} disabled={loading || !candElectionId || !candName} className="w-full gradient-accent border-0 text-accent-foreground font-semibold">
-                {loading ? "Adding..." : "Add Candidate"}
+              {candidates.map((cand, i) => (
+                <div key={i} className="flex gap-2 items-start">
+                  <div className="flex-1 space-y-2">
+                    <Input placeholder={`Candidate ${i + 1} name`} value={cand.name} onChange={(e) => updateCandidate(i, "name", e.target.value)} className="bg-muted/30 border-border/50" />
+                    <Input placeholder="Description (optional)" value={cand.description} onChange={(e) => updateCandidate(i, "description", e.target.value)} className="bg-muted/30 border-border/50" />
+                  </div>
+                  {candidates.length > 1 && (
+                    <Button size="sm" variant="ghost" onClick={() => removeCandidateRow(i)} className="mt-1 text-destructive hover:text-destructive">✕</Button>
+                  )}
+                </div>
+              ))}
+              <Button variant="outline" onClick={addCandidateRow} className="w-full border-dashed">+ Add Another Candidate</Button>
+              <Button onClick={handleAddCandidates} disabled={loading || !candElectionId || !candidates.some((c) => c.name.trim())} className="w-full gradient-accent border-0 text-accent-foreground font-semibold">
+                {loading ? "Adding..." : `Add ${candidates.filter((c) => c.name.trim()).length} Candidate(s)`}
               </Button>
             </div>
           </div>
