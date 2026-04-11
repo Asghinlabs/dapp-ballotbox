@@ -62,12 +62,17 @@ export function Header() {
               {isAdmin && (
                 <span className="rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-semibold text-accent">Admin</span>
               )}
-              <button
-                onClick={disconnectWallet}
-                className="glass rounded-lg px-3 py-2 text-xs font-mono text-muted-foreground transition-colors hover:text-foreground"
-              >
+              <span className="glass rounded-lg px-3 py-2 text-xs font-mono text-muted-foreground">
                 {account.slice(0, 6)}...{account.slice(-4)}
-              </button>
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={disconnectWallet}
+                className="text-xs text-muted-foreground hover:text-destructive"
+              >
+                Disconnect
+              </Button>
             </div>
           ) : (
             <Button onClick={connectWallet} disabled={isConnecting} className="gradient-primary border-0 text-primary-foreground font-semibold">

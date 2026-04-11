@@ -41,37 +41,33 @@ export function useContract() {
 
   const fetchElections = useCallback(async (): Promise<Election[]> => {
     if (!contract) return [];
-    try {
-      const count = await contract.electionCount();
-      const elections: Election[] = [];
-      for (let i = 1; i <= Number(count); i++) {
-        try {
-          const e = await contract.getElection(i);
-          const candidates = await contract.getAllCandidates(i);
-          elections.push({
-            id: Number(e[0]),
-            title: e[1],
-            description: e[2],
-            startTime: Number(e[3]),
-            endTime: Number(e[4]),
-            isActive: e[5],
-            resultsPublished: e[6],
-            candidates: candidates.map((c: any) => ({
-              id: Number(c[0] ?? c.id),
-              name: c[1] ?? c.name,
-              description: c[2] ?? c.description,
-              voteCount: Number(c[3] ?? c.voteCount),
-            })),
-          });
-        } catch {
-          // Skip invalid elections
-        }
+    const elections: Election[] = [];
+    let consecutiveFailures = 0;
+    for (let i = 1; consecutiveFailures < 3; i++) {
+      try {
+        const e = await contract.getElection(i);
+        const candidates = await contract.getAllCandidates(i);
+        consecutiveFailures = 0;
+        elections.push({
+          id: Number(e[0]),
+          title: e[1],
+          description: e[2],
+          startTime: Number(e[3]),
+          endTime: Number(e[4]),
+          isActive: e[5],
+          resultsPublished: e[6],
+          candidates: candidates.map((c: any) => ({
+            id: Number(c[0] ?? c.id),
+            name: c[1] ?? c.name,
+            description: c[2] ?? c.description,
+            voteCount: Number(c[3] ?? c.voteCount),
+          })),
+        });
+      } catch {
+        consecutiveFailures++;
       }
-      return elections;
-    } catch (err) {
-      console.error("Failed to fetch elections:", err);
-      return [];
     }
+    return elections;
   }, [contract]);
 
   const createElection = useCallback(async (title: string, description: string, startTime: number, endTime: number) => {
