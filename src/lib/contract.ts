@@ -13,7 +13,7 @@ export const CONTRACT_ABI = [
   "function castVote(uint256 electionId, uint256 candidateId) external",
   "function getElection(uint256 electionId) external view returns (uint256 id, string title, string description, uint256 startTime, uint256 endTime, bool isActive, bool resultsPublished)",
   "function getAllCandidates(uint256 electionId) external view returns (tuple(uint256 id, string name, string description, uint256 voteCount)[])",
-  "function electionCount() external view returns (uint256)",
+  
   "function voters(address) external view returns (bool isRegistered, bool isApproved)",
   "event ElectionCreated(uint256 indexed electionId, string title)",
   "event VoterRegistered(address indexed voter)",
