@@ -58,8 +58,7 @@ function AdminPage() {
 
   // Add candidate form
   const [candElectionId, setCandElectionId] = useState("");
-  const [candName, setCandName] = useState("");
-  const [candDesc, setCandDesc] = useState("");
+  const [candidates, setCandidates] = useState([{ name: "", description: "" }]);
 
   // Approve voter
   const [voterAddress, setVoterAddress] = useState("");
