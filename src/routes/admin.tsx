@@ -104,17 +104,38 @@ function AdminPage() {
       setStartDate("");
       setEndDate("");
       await loadElections();
+      setTab("elections");
     }
   };
 
-  const handleAddCandidate = async () => {
-    if (!candElectionId || !candName) return;
-    const result = await addCandidate(Number(candElectionId), candName, candDesc);
-    if (result) {
-      setCandName("");
-      setCandDesc("");
+  const handleAddCandidates = async () => {
+    if (!candElectionId) return;
+    const validCandidates = candidates.filter((c) => c.name.trim());
+    if (validCandidates.length === 0) return;
+    let anySuccess = false;
+    for (const cand of validCandidates) {
+      const result = await addCandidate(Number(candElectionId), cand.name, cand.description);
+      if (result) anySuccess = true;
+    }
+    if (anySuccess) {
+      setCandidates([{ name: "", description: "" }]);
       await loadElections();
     }
+  };
+
+  const addCandidateRow = () => {
+    setCandidates([...candidates, { name: "", description: "" }]);
+  };
+
+  const removeCandidateRow = (index: number) => {
+    if (candidates.length <= 1) return;
+    setCandidates(candidates.filter((_, i) => i !== index));
+  };
+
+  const updateCandidate = (index: number, field: "name" | "description", value: string) => {
+    const updated = [...candidates];
+    updated[index][field] = value;
+    setCandidates(updated);
   };
 
   const handleApproveVoter = async () => {
