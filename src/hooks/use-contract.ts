@@ -41,19 +41,37 @@ export function useContract() {
 
   const fetchElections = useCallback(async (): Promise<Election[]> => {
     if (!contract) return [];
+
     const elections: Election[] = [];
     let consecutiveFailures = 0;
+
     for (let i = 0; consecutiveFailures < 3; i++) {
       try {
         const e = await contract.getElection(i);
-        const candidates = await contract.getAllCandidates(i);
+
+        let candidates: any[] = [];
+        try {
+          candidates = await contract.getAllCandidates(i);
+        } catch {
+          candidates = [];
+        }
+
+        const title = e[1];
+        const startTime = Number(e[3]);
+        const endTime = Number(e[4]);
+
+        if (!title && startTime === 0 && endTime === 0) {
+          consecutiveFailures++;
+          continue;
+        }
+
         consecutiveFailures = 0;
         elections.push({
           id: Number(e[0]),
-          title: e[1],
+          title,
           description: e[2],
-          startTime: Number(e[3]),
-          endTime: Number(e[4]),
+          startTime,
+          endTime,
           isActive: e[5],
           resultsPublished: e[6],
           candidates: candidates.map((c: any) => ({
@@ -67,6 +85,7 @@ export function useContract() {
         consecutiveFailures++;
       }
     }
+
     return elections;
   }, [contract]);
 
