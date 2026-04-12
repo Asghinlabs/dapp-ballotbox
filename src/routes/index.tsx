@@ -62,6 +62,7 @@ function HomePage() {
   };
 
   const activeElections = elections.filter((e) => e.isActive);
+  const upcomingElections = elections.filter((e) => !e.isActive && !e.resultsPublished);
   const pastElections = elections.filter((e) => !e.isActive && e.resultsPublished);
 
   return (
@@ -119,6 +120,17 @@ function HomePage() {
             </section>
           )}
 
+          {upcomingElections.length > 0 && (
+            <section className="mb-12">
+              <h2 className="mb-6 font-display text-2xl font-bold">Upcoming Elections</h2>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {upcomingElections.map((election) => (
+                  <ElectionCard key={election.id} election={election} onVote={handleVote} votingId={votingId} loading={loading} upcoming />
+                ))}
+              </div>
+            </section>
+          )}
+
           {pastElections.length > 0 && (
             <section className="mb-12">
               <h2 className="mb-6 font-display text-2xl font-bold text-muted-foreground">Past Results</h2>
@@ -147,14 +159,17 @@ function ElectionCard({
   votingId,
   loading,
   past,
+  upcoming,
 }: {
   election: Election;
   onVote: (electionId: number, candidateId: number) => void;
   votingId: string | null;
   loading: boolean;
   past?: boolean;
+  upcoming?: boolean;
 }) {
   const totalVotes = election.candidates.reduce((sum, c) => sum + c.voteCount, 0);
+  const startDate = new Date(election.startTime * 1000);
   const endDate = new Date(election.endTime * 1000);
 
   return (
@@ -163,13 +178,15 @@ function ElectionCard({
         <h3 className="font-display text-lg font-bold">{election.title}</h3>
         {past ? (
           <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">Ended</span>
+        ) : upcoming ? (
+          <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-semibold text-primary">Scheduled</span>
         ) : (
           <span className="rounded-full bg-success/15 px-2.5 py-0.5 text-xs font-semibold text-success">Live</span>
         )}
       </div>
       <p className="mb-4 text-sm text-muted-foreground">{election.description}</p>
       <p className="mb-4 text-xs text-muted-foreground">
-        Ends: {endDate.toLocaleDateString()} {endDate.toLocaleTimeString()}
+        {upcoming ? "Starts" : "Ends"}: {(upcoming ? startDate : endDate).toLocaleDateString()} {(upcoming ? startDate : endDate).toLocaleTimeString()}
       </p>
 
       <div className="space-y-2">
