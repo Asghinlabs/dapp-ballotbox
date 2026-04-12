@@ -45,7 +45,7 @@ export function useContract() {
     const elections: Election[] = [];
     let consecutiveFailures = 0;
 
-    for (let i = 0; consecutiveFailures < 3; i++) {
+    for (let i = 1; consecutiveFailures < 3; i++) {
       try {
         const e = await contract.getElection(i);
 
@@ -86,7 +86,7 @@ export function useContract() {
       }
     }
 
-    return elections;
+    return elections.sort((a, b) => b.id - a.id);
   }, [contract]);
 
   const createElection = useCallback(async (title: string, description: string, startTime: number, endTime: number) => {
