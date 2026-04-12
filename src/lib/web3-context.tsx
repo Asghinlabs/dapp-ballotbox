@@ -34,8 +34,15 @@ export function Web3Provider({ children }: { children: ReactNode }) {
   const [isConnecting, setIsConnecting] = useState(false);
   const [contract, setContract] = useState<Contract | null>(null);
   const [signer, setSigner] = useState<Signer | null>(null);
+  const [hasManuallyDisconnected, setHasManuallyDisconnected] = useState(false);
 
   const isAdmin = account?.toLowerCase() === ADMIN_WALLET.toLowerCase();
+
+  const clearWalletState = useCallback(() => {
+    setAccount(null);
+    setContract(null);
+    setSigner(null);
+  }, []);
 
   const setupContract = useCallback(async (provider: BrowserProvider) => {
     const s = await provider.getSigner();
@@ -61,9 +68,16 @@ export function Web3Provider({ children }: { children: ReactNode }) {
     }
     setIsConnecting(true);
     try {
-      const provider = new BrowserProvider((window as any).ethereum);
+      const ethereum = (window as any).ethereum;
+      await ethereum.request({
+        method: "wallet_requestPermissions",
+        params: [{ eth_accounts: {} }],
+      }).catch(() => null);
+
+      const provider = new BrowserProvider(ethereum);
       const accounts: string[] = await provider.send("eth_requestAccounts", []);
       if (accounts.length > 0) {
+        setHasManuallyDisconnected(false);
         setAccount(accounts[0]);
         await checkNetwork();
         await setupContract(provider);
@@ -76,19 +90,26 @@ export function Web3Provider({ children }: { children: ReactNode }) {
   }, [checkNetwork, setupContract]);
 
   const disconnectWallet = useCallback(() => {
-    setAccount(null);
-    setContract(null);
-    setSigner(null);
-  }, []);
+    setHasManuallyDisconnected(true);
+    clearWalletState();
+
+    if (typeof window !== "undefined" && (window as any).ethereum) {
+      void (window as any).ethereum.request({
+        method: "wallet_revokePermissions",
+        params: [{ eth_accounts: {} }],
+      }).catch(() => null);
+    }
+  }, [clearWalletState]);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !(window as any).ethereum) return;
+    if (typeof window === "undefined" || !(window as any).ethereum || hasManuallyDisconnected) return;
     const eth = (window as any).ethereum;
 
     const handleAccountsChanged = (accounts: string[]) => {
       if (accounts.length === 0) {
-        disconnectWallet();
+        clearWalletState();
       } else {
+        setHasManuallyDisconnected(false);
         setAccount(accounts[0]);
         const provider = new BrowserProvider(eth);
         setupContract(provider);
@@ -105,6 +126,7 @@ export function Web3Provider({ children }: { children: ReactNode }) {
     // Auto-connect if previously connected
     eth.request({ method: "eth_accounts" }).then((accounts: string[]) => {
       if (accounts.length > 0) {
+        setHasManuallyDisconnected(false);
         setAccount(accounts[0]);
         checkNetwork();
         const provider = new BrowserProvider(eth);
@@ -116,7 +138,7 @@ export function Web3Provider({ children }: { children: ReactNode }) {
       eth.removeListener("accountsChanged", handleAccountsChanged);
       eth.removeListener("chainChanged", handleChainChanged);
     };
-  }, [checkNetwork, disconnectWallet, setupContract]);
+  }, [checkNetwork, clearWalletState, hasManuallyDisconnected, setupContract]);
 
   return (
     <Web3Context.Provider value={{ account, isAdmin, isCorrectNetwork, isConnecting, contract, signer, connectWallet, disconnectWallet }}>
