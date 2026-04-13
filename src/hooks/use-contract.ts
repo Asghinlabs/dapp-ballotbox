@@ -165,10 +165,18 @@ export function useContract() {
   const getVoterStatus = useCallback(async (address: string) => {
     if (!contract) return null;
     try {
+      // Try combined voters() first
       const result = await contract.voters(address);
       return { isRegistered: result[0], isApproved: result[1] };
     } catch {
-      return null;
+      // Fall back to separate mappings
+      try {
+        const isPending = await contract.pendingVoters(address);
+        const isApproved = await contract.approvedVoters(address);
+        return { isRegistered: isPending || isApproved, isApproved };
+      } catch {
+        return null;
+      }
     }
   }, [contract]);
 
@@ -182,9 +190,22 @@ export function useContract() {
       const pending: string[] = [];
       for (const addr of unique) {
         try {
+          // Try combined voters() first
           const result = await contract.voters(addr);
-          if (result[0] && !result[1]) pending.push(addr);
-        } catch {}
+          if (result[0] && !result[1]) {
+            pending.push(addr);
+            continue;
+          }
+        } catch {
+          // Fall back to separate mappings
+          try {
+            const isPending = await contract.pendingVoters(addr);
+            const isApproved = await contract.approvedVoters(addr);
+            if (isPending && !isApproved) {
+              pending.push(addr);
+            }
+          } catch {}
+        }
       }
       return pending;
     } catch {
