@@ -190,9 +190,22 @@ export function useContract() {
       const pending: string[] = [];
       for (const addr of unique) {
         try {
+          // Try combined voters() first
           const result = await contract.voters(addr);
-          if (result[0] && !result[1]) pending.push(addr);
-        } catch {}
+          if (result[0] && !result[1]) {
+            pending.push(addr);
+            continue;
+          }
+        } catch {
+          // Fall back to separate mappings
+          try {
+            const isPending = await contract.pendingVoters(addr);
+            const isApproved = await contract.approvedVoters(addr);
+            if (isPending && !isApproved) {
+              pending.push(addr);
+            }
+          } catch {}
+        }
       }
       return pending;
     } catch {
