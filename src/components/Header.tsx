@@ -8,7 +8,7 @@ export function Header() {
 
   const navLinks = [
     { to: "/" as const, label: "Elections" },
-    { to: "/register" as const, label: "Register" },
+    ...(!isAdmin ? [{ to: "/register" as const, label: "Register" }] : []),
   ];
 
   return (

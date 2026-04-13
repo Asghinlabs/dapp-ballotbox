@@ -15,7 +15,7 @@ export const Route = createFileRoute("/register")({
 });
 
 function RegisterPage() {
-  const { account, isCorrectNetwork, connectWallet, isConnecting } = useWeb3();
+  const { account, isCorrectNetwork, isAdmin, connectWallet, isConnecting } = useWeb3();
   const { registerVoter, getVoterStatus, loading } = useContract();
   const [status, setStatus] = useState<{ isRegistered: boolean; isApproved: boolean } | null>(null);
 
@@ -48,7 +48,11 @@ function RegisterPage() {
           Register your wallet address to participate in elections.
         </p>
 
-        {!account ? (
+        {isAdmin ? (
+          <div className="mt-8 rounded-xl bg-muted/30 p-6">
+            <p className="text-sm text-muted-foreground">Admin wallets do not need to register as voters.</p>
+          </div>
+        ) : !account ? (
           <div className="mt-8">
             <Button onClick={connectWallet} disabled={isConnecting} className="gradient-primary border-0 text-primary-foreground font-semibold">
               {isConnecting ? "Connecting..." : "Connect Wallet to Register"}
@@ -84,6 +88,7 @@ function RegisterPage() {
               {loading ? "Submitting..." : "Register as Voter"}
             </Button>
           </div>
+        )}
         )}
       </div>
     </div>
