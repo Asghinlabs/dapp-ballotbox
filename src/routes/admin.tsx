@@ -44,6 +44,7 @@ function AdminPage() {
     startElection,
     endElection,
     publishResults,
+    fetchPendingVoters,
     loading,
   } = useContract();
 
@@ -60,19 +61,26 @@ function AdminPage() {
   const [candElectionId, setCandElectionId] = useState("");
   const [candidates, setCandidates] = useState([{ name: "", description: "" }]);
 
-  // Approve voter
-  const [voterAddress, setVoterAddress] = useState("");
+  // Pending voters
+  const [pendingVoters, setPendingVoters] = useState<string[]>([]);
+  const [approvingAddr, setApprovingAddr] = useState<string | null>(null);
 
   const loadElections = useCallback(async () => {
     const data = await fetchElections();
     setElections(data);
   }, [fetchElections]);
 
+  const loadPendingVoters = useCallback(async () => {
+    const voters = await fetchPendingVoters();
+    setPendingVoters(voters);
+  }, [fetchPendingVoters]);
+
   useEffect(() => {
     if (account && isCorrectNetwork && isAdmin) {
       loadElections();
+      loadPendingVoters();
     }
-  }, [account, isCorrectNetwork, isAdmin, loadElections]);
+  }, [account, isCorrectNetwork, isAdmin, loadElections, loadPendingVoters]);
 
   if (!account) {
     return (
@@ -138,12 +146,13 @@ function AdminPage() {
     setCandidates(updated);
   };
 
-  const handleApproveVoter = async () => {
-    if (!voterAddress) return;
-    const result = await approveVoter(voterAddress);
+  const handleApproveVoter = async (addr: string) => {
+    setApprovingAddr(addr);
+    const result = await approveVoter(addr);
     if (result) {
-      setVoterAddress("");
+      setPendingVoters((prev) => prev.filter((a) => a.toLowerCase() !== addr.toLowerCase()));
     }
+    setApprovingAddr(null);
   };
 
   const tabs = [
@@ -273,21 +282,33 @@ function AdminPage() {
 
       {tab === "voters" && (
         <div className="glass rounded-2xl p-6">
-          <h2 className="mb-4 font-display text-lg font-bold">Approve Voter</h2>
-          <div className="flex gap-3">
-            <Input
-              placeholder="0x... voter wallet address"
-              value={voterAddress}
-              onChange={(e) => setVoterAddress(e.target.value)}
-              className="flex-1 bg-muted/30 border-border/50 font-mono text-sm"
-            />
-            <Button onClick={handleApproveVoter} disabled={loading || !voterAddress} className="gradient-primary border-0 text-primary-foreground">
-              {loading ? "Approving..." : "Approve"}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display text-lg font-bold">Pending Voter Registrations</h2>
+            <Button variant="outline" size="sm" onClick={loadPendingVoters} disabled={loading} className="text-xs">
+              Refresh
             </Button>
           </div>
-          <p className="mt-3 text-xs text-muted-foreground">
-            Enter the wallet address of a voter who has registered and needs approval to vote.
-          </p>
+          {pendingVoters.length === 0 ? (
+            <div className="rounded-xl bg-muted/30 p-8 text-center">
+              <p className="text-muted-foreground text-sm">No pending voter registrations.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {pendingVoters.map((addr) => (
+                <div key={addr} className="flex items-center justify-between gap-3 rounded-xl bg-muted/20 p-4">
+                  <span className="font-mono text-sm text-muted-foreground break-all">{addr}</span>
+                  <Button
+                    size="sm"
+                    onClick={() => handleApproveVoter(addr)}
+                    disabled={approvingAddr === addr}
+                    className="gradient-primary border-0 text-primary-foreground text-xs shrink-0"
+                  >
+                    {approvingAddr === addr ? "Approving..." : "Approve"}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

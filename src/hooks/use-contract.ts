@@ -172,6 +172,26 @@ export function useContract() {
     }
   }, [contract]);
 
+  const fetchPendingVoters = useCallback(async (): Promise<string[]> => {
+    if (!contract) return [];
+    try {
+      const filter = contract.filters.VoterRegistered();
+      const events = await contract.queryFilter(filter, 0, "latest");
+      const addresses: string[] = events.map((e: any) => e.args?.[0] || e.args?.voter).filter(Boolean);
+      const unique = [...new Set(addresses)];
+      const pending: string[] = [];
+      for (const addr of unique) {
+        try {
+          const result = await contract.voters(addr);
+          if (result[0] && !result[1]) pending.push(addr);
+        } catch {}
+      }
+      return pending;
+    } catch {
+      return [];
+    }
+  }, [contract]);
+
   return {
     loading,
     fetchElections,
@@ -184,5 +204,6 @@ export function useContract() {
     publishResults,
     castVote,
     getVoterStatus,
+    fetchPendingVoters,
   };
 }
