@@ -165,10 +165,18 @@ export function useContract() {
   const getVoterStatus = useCallback(async (address: string) => {
     if (!contract) return null;
     try {
+      // Try combined voters() first
       const result = await contract.voters(address);
       return { isRegistered: result[0], isApproved: result[1] };
     } catch {
-      return null;
+      // Fall back to separate mappings
+      try {
+        const isPending = await contract.pendingVoters(address);
+        const isApproved = await contract.approvedVoters(address);
+        return { isRegistered: isPending || isApproved, isApproved };
+      } catch {
+        return null;
+      }
     }
   }, [contract]);
 
