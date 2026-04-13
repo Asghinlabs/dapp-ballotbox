@@ -3,6 +3,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useWeb3 } from "@/lib/web3-context";
 import { useContract } from "@/hooks/use-contract";
 import { Button } from "@/components/ui/button";
+import { CountdownTimer } from "@/components/CountdownTimer";
+import type { Election } from "@/hooks/use-contract";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -16,30 +18,15 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
-interface Candidate {
-  id: number;
-  name: string;
-  description: string;
-  voteCount: number;
-}
-
-interface Election {
-  id: number;
-  title: string;
-  description: string;
-  startTime: number;
-  endTime: number;
-  isActive: boolean;
-  resultsPublished: boolean;
-  candidates: Candidate[];
-}
-
 function HomePage() {
-  const { account, isCorrectNetwork } = useWeb3();
-  const { fetchElections, castVote, loading } = useContract();
+  const { account, isCorrectNetwork, isAdmin } = useWeb3();
+  const { fetchElections, castVote, getVoterStatus, loading } = useContract();
   const [elections, setElections] = useState<Election[]>([]);
   const [fetchingElections, setFetchingElections] = useState(false);
   const [votingId, setVotingId] = useState<string | null>(null);
+  const [votedFor, setVotedFor] = useState<Record<string, string>>({});
+  const [voterStatus, setVoterStatus] = useState<{ isRegistered: boolean; isApproved: boolean } | null>(null);
+  const [showPast, setShowPast] = useState(false);
 
   const loadElections = useCallback(async () => {
     setFetchingElections(true);
@@ -51,26 +38,37 @@ function HomePage() {
   useEffect(() => {
     if (account && isCorrectNetwork) {
       loadElections();
+      if (!isAdmin) {
+        getVoterStatus(account).then((s) => {
+          if (s) setVoterStatus(s);
+        });
+      }
     }
-  }, [account, isCorrectNetwork, loadElections]);
+  }, [account, isCorrectNetwork, isAdmin, loadElections, getVoterStatus]);
 
-  const handleVote = async (electionId: number, candidateId: number) => {
+  const handleVote = async (electionId: number, candidateId: number, candidateName: string) => {
     setVotingId(`${electionId}-${candidateId}`);
     const result = await castVote(electionId, candidateId);
-    if (result) await loadElections();
+    if (result) {
+      setVotedFor((prev) => ({ ...prev, [electionId]: candidateName }));
+      await loadElections();
+    }
     setVotingId(null);
   };
 
+  const now = Math.floor(Date.now() / 1000);
   const activeElections = elections.filter((e) => e.isActive);
-  const upcomingElections = elections.filter((e) => !e.isActive && !e.resultsPublished);
-  const pastElections = elections.filter((e) => !e.isActive && e.resultsPublished);
+  const upcomingElections = elections.filter((e) => !e.isActive && e.startTime > now && !e.resultsPublished);
+  const pastElections = elections.filter((e) => !e.isActive && (e.resultsPublished || e.endTime <= now));
+
+  const canVote = !isAdmin && voterStatus?.isApproved;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {!isCorrectNetwork && account && (
         <div className="mb-6 flex items-center gap-3 rounded-xl bg-warning/10 p-4 text-warning">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          <p className="text-sm font-medium">Please switch to Sepolia testnet in MetaMask to interact with this DApp.</p>
+          <p className="text-sm font-medium">Please switch to Sepolia testnet in MetaMask.</p>
         </div>
       )}
 
@@ -92,17 +90,8 @@ function HomePage() {
           <p className="mt-2 text-sm text-muted-foreground">Connect MetaMask to view elections and cast your vote.</p>
         </div>
       ) : fetchingElections ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="glass animate-pulse rounded-2xl p-6">
-              <div className="mb-3 h-5 w-2/3 rounded bg-muted" />
-              <div className="mb-6 h-4 w-full rounded bg-muted/50" />
-              <div className="space-y-3">
-                <div className="h-12 rounded-xl bg-muted/30" />
-                <div className="h-12 rounded-xl bg-muted/30" />
-              </div>
-            </div>
-          ))}
+        <div className="flex justify-center py-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
         </div>
       ) : (
         <>
@@ -114,7 +103,7 @@ function HomePage() {
               </h2>
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {activeElections.map((election) => (
-                  <ElectionCard key={election.id} election={election} onVote={handleVote} votingId={votingId} loading={loading} />
+                  <ElectionCard key={election.id} election={election} onVote={handleVote} votingId={votingId} loading={loading} canVote={!!canVote} votedFor={votedFor[election.id]} />
                 ))}
               </div>
             </section>
@@ -125,18 +114,23 @@ function HomePage() {
               <h2 className="mb-6 font-display text-2xl font-bold">Upcoming Elections</h2>
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {upcomingElections.map((election) => (
-                  <ElectionCard key={election.id} election={election} onVote={handleVote} votingId={votingId} loading={loading} upcoming />
+                  <ElectionCard key={election.id} election={election} onVote={handleVote} votingId={votingId} loading={loading} canVote={false} upcoming />
                 ))}
               </div>
             </section>
           )}
 
-          {pastElections.length > 0 && (
+          <div className="mb-6">
+            <button onClick={() => setShowPast(!showPast)} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              {showPast ? "▾ Hide" : "▸ Show"} Past Elections ({pastElections.length})
+            </button>
+          </div>
+
+          {showPast && pastElections.length > 0 && (
             <section className="mb-12">
-              <h2 className="mb-6 font-display text-2xl font-bold text-muted-foreground">Past Results</h2>
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {pastElections.map((election) => (
-                  <ElectionCard key={election.id} election={election} onVote={handleVote} votingId={votingId} loading={loading} past />
+                  <ElectionCard key={election.id} election={election} onVote={handleVote} votingId={votingId} loading={loading} canVote={false} past />
                 ))}
               </div>
             </section>
@@ -158,41 +152,65 @@ function ElectionCard({
   onVote,
   votingId,
   loading,
+  canVote,
   past,
   upcoming,
+  votedFor,
 }: {
   election: Election;
-  onVote: (electionId: number, candidateId: number) => void;
+  onVote: (electionId: number, candidateId: number, candidateName: string) => void;
   votingId: string | null;
   loading: boolean;
+  canVote: boolean;
   past?: boolean;
   upcoming?: boolean;
+  votedFor?: string;
 }) {
   const totalVotes = election.candidates.reduce((sum, c) => sum + c.voteCount, 0);
-  const startDate = new Date(election.startTime * 1000);
-  const endDate = new Date(election.endTime * 1000);
+  const now = Math.floor(Date.now() / 1000);
+
+  const getVoteDisabledReason = (): string | null => {
+    if (votedFor) return "You already voted in this election";
+    if (!canVote) return "You must be an approved voter to vote";
+    if (upcoming) return "Election has not started yet";
+    if (past) return "Election has ended";
+    return null;
+  };
+
+  const disabledReason = getVoteDisabledReason();
 
   return (
     <div className="glass rounded-2xl p-6 transition-all hover:scale-[1.01]">
       <div className="mb-1 flex items-center justify-between">
         <h3 className="font-display text-lg font-bold">{election.title}</h3>
         {past ? (
-          <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">Ended</span>
+          <span className="rounded-full bg-destructive/15 px-2.5 py-0.5 text-xs font-medium text-destructive">🔴 Ended</span>
         ) : upcoming ? (
-          <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-semibold text-primary">Scheduled</span>
+          <span className="rounded-full bg-warning/15 px-2.5 py-0.5 text-xs font-semibold text-warning">🟡 Upcoming</span>
         ) : (
-          <span className="rounded-full bg-success/15 px-2.5 py-0.5 text-xs font-semibold text-success">Live</span>
+          <span className="rounded-full bg-success/15 px-2.5 py-0.5 text-xs font-semibold text-success">🟢 Live</span>
         )}
       </div>
-      <p className="mb-4 text-sm text-muted-foreground">{election.description}</p>
-      <p className="mb-4 text-xs text-muted-foreground">
-        {upcoming ? "Starts" : "Ends"}: {(upcoming ? startDate : endDate).toLocaleDateString()} {(upcoming ? startDate : endDate).toLocaleTimeString()}
-      </p>
+      <p className="mb-2 text-sm text-muted-foreground">{election.description}</p>
 
-      <div className="space-y-2">
+      {election.isActive && election.endTime > now && (
+        <CountdownTimer targetTime={election.endTime} label="Ends in" />
+      )}
+      {upcoming && election.startTime > now && (
+        <CountdownTimer targetTime={election.startTime} label="Starts in" />
+      )}
+
+      {votedFor && (
+        <div className="my-3 rounded-lg bg-success/10 p-2.5 text-xs font-semibold text-success">
+          ✓ You voted for {votedFor}
+        </div>
+      )}
+
+      <div className="mt-4 space-y-2">
         {election.candidates.map((candidate) => {
           const pct = totalVotes > 0 ? (candidate.voteCount / totalVotes) * 100 : 0;
           const isVoting = votingId === `${election.id}-${candidate.id}`;
+          const showVoteBtn = !past && election.isActive && !votedFor;
 
           return (
             <div key={candidate.id} className="relative overflow-hidden rounded-xl bg-muted/30 p-3">
@@ -212,14 +230,20 @@ function ElectionCard({
                       {candidate.voteCount} ({pct.toFixed(0)}%)
                     </span>
                   )}
-                  {!past && election.isActive && (
+                  {showVoteBtn && (
                     <Button
                       size="sm"
-                      onClick={() => onVote(election.id, candidate.id)}
-                      disabled={loading || isVoting}
+                      onClick={() => onVote(election.id, candidate.id, candidate.name)}
+                      disabled={loading || isVoting || !!disabledReason}
+                      title={disabledReason || "Cast your vote"}
                       className="gradient-primary border-0 text-xs text-primary-foreground"
                     >
-                      {isVoting ? "..." : "Vote"}
+                      {isVoting ? (
+                        <span className="flex items-center gap-1">
+                          <span className="h-3 w-3 animate-spin rounded-full border border-primary-foreground border-t-transparent" />
+                          Voting...
+                        </span>
+                      ) : "Vote"}
                     </Button>
                   )}
                 </div>
@@ -228,6 +252,10 @@ function ElectionCard({
           );
         })}
       </div>
+
+      {disabledReason && !past && !votedFor && election.isActive && (
+        <p className="mt-3 text-xs text-muted-foreground italic">{disabledReason}</p>
+      )}
     </div>
   );
 }

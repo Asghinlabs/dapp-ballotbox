@@ -1,6 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useWeb3 } from "@/lib/web3-context";
 import { Button } from "@/components/ui/button";
+import { VoterStatusBadge } from "@/components/VoterStatusBadge";
 
 export function Header() {
   const { account, isAdmin, isCorrectNetwork, isConnecting, connectWallet, disconnectWallet } = useWeb3();
@@ -36,16 +37,28 @@ export function Header() {
               </Link>
             ))}
             {isAdmin && (
-              <Link
-                to="/admin"
-                className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  location.pathname === "/admin"
-                    ? "bg-primary/15 text-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                }`}
-              >
-                Admin
-              </Link>
+              <>
+                <Link
+                  to="/admin"
+                  className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    location.pathname === "/admin"
+                      ? "bg-primary/15 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  }`}
+                >
+                  Admin
+                </Link>
+                <Link
+                  to="/voter-view"
+                  className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    location.pathname === "/voter-view"
+                      ? "bg-primary/15 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  }`}
+                >
+                  Voter View
+                </Link>
+              </>
             )}
           </nav>
         </div>
@@ -59,6 +72,7 @@ export function Header() {
           )}
           {account ? (
             <div className="flex items-center gap-2">
+              <VoterStatusBadge />
               {isAdmin && (
                 <span className="rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-semibold text-accent">Admin</span>
               )}

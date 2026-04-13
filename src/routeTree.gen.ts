@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VoterViewRouteImport } from './routes/voter-view'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 
+const VoterViewRoute = VoterViewRouteImport.update({
+  id: '/voter-view',
+  path: '/voter-view',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -33,34 +39,45 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/register': typeof RegisterRoute
+  '/voter-view': typeof VoterViewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/register': typeof RegisterRoute
+  '/voter-view': typeof VoterViewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/register': typeof RegisterRoute
+  '/voter-view': typeof VoterViewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/register'
+  fullPaths: '/' | '/admin' | '/register' | '/voter-view'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/register'
-  id: '__root__' | '/' | '/admin' | '/register'
+  to: '/' | '/admin' | '/register' | '/voter-view'
+  id: '__root__' | '/' | '/admin' | '/register' | '/voter-view'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   RegisterRoute: typeof RegisterRoute
+  VoterViewRoute: typeof VoterViewRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/voter-view': {
+      id: '/voter-view'
+      path: '/voter-view'
+      fullPath: '/voter-view'
+      preLoaderRoute: typeof VoterViewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   RegisterRoute: RegisterRoute,
+  VoterViewRoute: VoterViewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
