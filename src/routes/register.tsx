@@ -89,7 +89,6 @@ function RegisterPage() {
             </Button>
           </div>
         )}
-        )}
       </div>
     </div>
   );
