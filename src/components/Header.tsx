@@ -7,10 +7,15 @@ export function Header() {
   const { account, isAdmin, isCorrectNetwork, isConnecting, connectWallet, disconnectWallet } = useWeb3();
   const location = useLocation();
 
-  const navLinks = [
-    { to: "/" as const, label: "Elections" },
-    ...(!isAdmin ? [{ to: "/register" as const, label: "Register" }] : []),
-  ];
+  const navLinks = isAdmin
+    ? [
+        { to: "/voter-view" as const, label: "Voter View" },
+        { to: "/admin" as const, label: "Admin Dashboard" },
+      ]
+    : [
+        { to: "/" as const, label: "Elections" },
+        { to: "/register" as const, label: "Register" },
+      ];
 
   return (
     <header className="sticky top-0 z-50 glass-strong">
@@ -36,30 +41,6 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
-            {isAdmin && (
-              <>
-                <Link
-                  to="/admin"
-                  className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                    location.pathname === "/admin"
-                      ? "bg-primary/15 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  }`}
-                >
-                  Admin
-                </Link>
-                <Link
-                  to="/voter-view"
-                  className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                    location.pathname === "/voter-view"
-                      ? "bg-primary/15 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  }`}
-                >
-                  Voter View
-                </Link>
-              </>
-            )}
           </nav>
         </div>
 
