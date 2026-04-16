@@ -88,6 +88,13 @@ function HomePage() {
           </div>
           <h2 className="text-xl font-semibold font-display">Connect Your Wallet</h2>
           <p className="mt-2 text-sm text-muted-foreground">Connect MetaMask to view elections and cast your vote.</p>
+          <Button
+            onClick={connectWallet}
+            disabled={isConnecting}
+            className="mt-6 h-12 w-full sm:w-auto sm:px-10 gradient-primary border-0 text-base font-semibold text-primary-foreground shadow-lg"
+          >
+            {isConnecting ? "Connecting..." : "Tap to Connect"}
+          </Button>
         </div>
       ) : fetchingElections ? (
         <div className="flex justify-center py-12">
