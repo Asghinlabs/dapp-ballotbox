@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
-  const { account, isCorrectNetwork, isAdmin } = useWeb3();
+  const { account, isCorrectNetwork, isAdmin, connectWallet, isConnecting } = useWeb3();
   const { fetchElections, castVote, getVoterStatus, loading } = useContract();
   const [elections, setElections] = useState<Election[]>([]);
   const [fetchingElections, setFetchingElections] = useState(false);
