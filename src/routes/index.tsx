@@ -7,6 +7,7 @@ import { useContract } from "@/hooks/use-contract";
 import { fetchElectionsReadOnly } from "@/lib/read-contract";
 import { Button } from "@/components/ui/button";
 import { CountdownTimer } from "@/components/CountdownTimer";
+import { WalletSetupGuide } from "@/components/WalletSetupGuide";
 import type { Election } from "@/hooks/use-contract";
 
 export const Route = createFileRoute("/")({
