@@ -100,20 +100,40 @@ function HomePage() {
         </p>
       </div>
 
-      {!account && (
-        <div className="glass mb-8 rounded-2xl p-6 sm:p-8 text-center">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl gradient-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-primary-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      {!account ? (
+        <div className="glass mb-8 rounded-2xl p-6 sm:p-8 text-center border border-primary/20">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl gradient-primary shadow-lg">
+            <Lock className="h-7 w-7 text-primary-foreground" />
           </div>
-          <h2 className="text-lg font-semibold font-display">Browsing as Guest</h2>
-          <p className="mt-1 text-sm text-muted-foreground">You can view all elections below. Connect your wallet to cast a vote.</p>
+          <h2 className="text-xl font-bold font-display">Browsing as Guest</h2>
+          <p className="mt-1 text-sm text-muted-foreground">All elections are visible below. Connect your wallet to cast a vote.</p>
           <Button
             onClick={connectWallet}
             disabled={isConnecting}
-            className="mt-4 h-12 w-full sm:w-auto sm:px-10 gradient-primary border-0 text-base font-semibold text-primary-foreground shadow-lg"
+            className="mt-4 h-14 w-full gradient-primary border-0 text-base font-bold text-primary-foreground shadow-xl hover:shadow-2xl transition-all sm:text-lg"
           >
-            {isConnecting ? "Connecting..." : "Tap to Connect"}
+            <Lock className="h-5 w-5" />
+            {isConnecting ? "Connecting..." : "🔒 CONNECT TO VOTE"}
           </Button>
+          <p className="mt-2 text-xs text-muted-foreground">Tap to connect your wallet and participate</p>
+        </div>
+      ) : (
+        <div className="mb-8 rounded-2xl border border-success/30 bg-success/5 p-4 sm:p-5 flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-success/15 shrink-0">
+            <CheckCircle2 className="h-6 w-6 text-success" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-success flex items-center gap-1.5">
+              <Wallet className="h-4 w-4" /> Wallet Connected
+            </p>
+            <p className="text-xs text-muted-foreground font-mono truncate">
+              {account.slice(0, 6)}…{account.slice(-4)}
+              {isAdmin && <span className="ml-2 text-primary font-semibold">• ADMIN</span>}
+              {!isAdmin && voterStatus?.isApproved && <span className="ml-2 text-success font-semibold">• Approved Voter</span>}
+              {!isAdmin && voterStatus?.isRegistered && !voterStatus?.isApproved && <span className="ml-2 text-warning font-semibold">• Pending Approval</span>}
+              {!isAdmin && !voterStatus?.isRegistered && <span className="ml-2 text-muted-foreground">• Not Registered</span>}
+            </p>
+          </div>
         </div>
       )}
 
