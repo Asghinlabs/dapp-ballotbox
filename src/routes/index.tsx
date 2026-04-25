@@ -378,21 +378,28 @@ function ElectionCard({
                         size="sm"
                         onClick={() => {
                           if (!isConnected) {
+                            toast.error("Please connect your wallet first");
                             onConnect();
+                            return;
+                          }
+                          if (disabledReason) {
+                            toast.error(disabledReason);
                             return;
                           }
                           onVote(election.id, candidate.id, candidate.name);
                         }}
-                        disabled={loading || isVoting || (isConnected && !!disabledReason)}
-                        title={disabledReason || "Cast your vote"}
-                        className="gradient-primary border-0 text-xs text-primary-foreground"
+                        disabled={loading || isVoting}
+                        title={disabledReason || (isConnected ? "Cast your vote" : "Connect wallet to vote")}
+                        className={`border-0 text-xs ${!isConnected || disabledReason ? "bg-muted text-muted-foreground opacity-60 cursor-not-allowed hover:bg-muted" : "gradient-primary text-primary-foreground"}`}
                       >
                         {isVoting ? (
                           <span className="flex items-center gap-1">
                             <span className="h-3 w-3 animate-spin rounded-full border border-primary-foreground border-t-transparent" />
                             Voting...
                           </span>
-                        ) : !isConnected ? "Connect to Vote" : "Vote"}
+                        ) : !isConnected ? (
+                          <span className="flex items-center gap-1"><Lock className="h-3 w-3" />Vote</span>
+                        ) : "Vote"}
                       </Button>
                     )}
                   </div>
