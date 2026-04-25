@@ -117,6 +117,7 @@ function HomePage() {
             {isConnecting ? "Connecting..." : "🔒 CONNECT TO VOTE"}
           </Button>
           <p className="mt-2 text-xs text-muted-foreground">Tap to connect your wallet and participate</p>
+          <WalletSetupGuide />
         </div>
       ) : (
         <div className="mb-8 rounded-2xl border border-success/30 bg-success/5 p-4 sm:p-5 flex items-center gap-3">
