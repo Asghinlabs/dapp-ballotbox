@@ -181,7 +181,7 @@ export function Web3Provider({ children }: { children: ReactNode }) {
   }, [checkNetwork, clearWalletState, hasManuallyDisconnected, setupContract]);
 
   return (
-    <Web3Context.Provider value={{ account, isAdmin, isCorrectNetwork, isConnecting, contract, signer, connectWallet, disconnectWallet }}>
+    <Web3Context.Provider value={{ account, isAdmin, isCorrectNetwork, isConnecting, contract, signer, connectWallet, disconnectWallet, overrideNetworkCheck }}>
       {children}
     </Web3Context.Provider>
   );
