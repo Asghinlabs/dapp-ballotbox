@@ -32,7 +32,7 @@ function getWinner(election: Election) {
 }
 
 function HomePage() {
-  const { account, isCorrectNetwork, isAdmin, connectWallet, isConnecting, contract } = useWeb3();
+  const { account, isCorrectNetwork, isAdmin, connectWallet, isConnecting, contract, overrideNetworkCheck } = useWeb3();
   const { fetchElections, castVote, getVoterStatus, loading } = useContract();
   const [elections, setElections] = useState<Election[]>([]);
   const [fetchingElections, setFetchingElections] = useState(true);
@@ -86,9 +86,21 @@ function HomePage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {!isCorrectNetwork && account && (
-        <div className="mb-6 flex items-center gap-3 rounded-xl bg-warning/10 p-4 text-warning">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          <p className="text-sm font-medium">Please switch to Sepolia testnet in MetaMask.</p>
+        <div className="mb-6 rounded-xl bg-warning/10 p-4 text-warning">
+          <div className="flex items-start gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <div className="flex-1">
+              <p className="text-sm font-medium">We couldn't confirm you're on Sepolia. If MetaMask already shows Sepolia, tap below to continue.</p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={overrideNetworkCheck}
+                className="mt-3 border-warning/40 bg-background/50 text-warning hover:bg-warning/10"
+              >
+                I'm on Sepolia — Continue anyway
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 

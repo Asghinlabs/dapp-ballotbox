@@ -42,10 +42,11 @@ export function WalletSetupGuide() {
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="mt-3 h-12 w-full border-primary/30 bg-background/50 text-sm font-semibold hover:bg-primary/5"
+          className="mt-3 h-auto min-h-12 w-full whitespace-normal break-words text-center px-4 py-2.5 border-primary/30 bg-background/50 text-sm font-semibold leading-snug hover:bg-primary/5"
         >
-          <HelpCircle className="h-4 w-4" />
-          ❓ Don't have a wallet? Click here for setup guide
+          <HelpCircle className="h-4 w-4 shrink-0" />
+          <span className="sm:hidden">❓ Need help? Setup guide</span>
+          <span className="hidden sm:inline">❓ Don't have a wallet? Click here for setup guide</span>
         </Button>
       </DialogTrigger>
 

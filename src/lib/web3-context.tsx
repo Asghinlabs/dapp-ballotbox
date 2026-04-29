@@ -11,6 +11,7 @@ interface Web3ContextType {
   signer: Signer | null;
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
+  overrideNetworkCheck: () => void;
 }
 
 const Web3Context = createContext<Web3ContextType>({
@@ -22,7 +23,23 @@ const Web3Context = createContext<Web3ContextType>({
   signer: null,
   connectWallet: async () => {},
   disconnectWallet: () => {},
+  overrideNetworkCheck: () => {},
 });
+
+const SEPOLIA_HEX = "0xaa36a7";
+
+function isSepolia(chainId: unknown): boolean {
+  if (typeof chainId === "string") {
+    const lower = chainId.toLowerCase();
+    if (lower === SEPOLIA_HEX) return true;
+    // Some mobile wallets return decimal as string
+    const parsed = lower.startsWith("0x") ? parseInt(lower, 16) : parseInt(lower, 10);
+    return parsed === SEPOLIA_CHAIN_ID;
+  }
+  if (typeof chainId === "number") return chainId === SEPOLIA_CHAIN_ID;
+  if (typeof chainId === "bigint") return Number(chainId) === SEPOLIA_CHAIN_ID;
+  return false;
+}
 
 export function useWeb3() {
   return useContext(Web3Context);
@@ -55,11 +72,33 @@ export function Web3Provider({ children }: { children: ReactNode }) {
     if (typeof window === "undefined" || !(window as any).ethereum) return;
     try {
       const chainId = await (window as any).ethereum.request({ method: "eth_chainId" });
-      setIsCorrectNetwork(parseInt(chainId, 16) === SEPOLIA_CHAIN_ID);
-    } catch {
+      const ok = isSepolia(chainId);
+      console.log("[web3] eth_chainId =", chainId, "→ isSepolia:", ok);
+      // Try ethers fallback if check fails (some mobile wallets misreport)
+      if (!ok) {
+        try {
+          const provider = new BrowserProvider((window as any).ethereum);
+          const net = await provider.getNetwork();
+          const okFallback = isSepolia(net.chainId);
+          console.log("[web3] provider.getNetwork().chainId =", net.chainId.toString(), "→ isSepolia:", okFallback);
+          setIsCorrectNetwork(okFallback);
+          return;
+        } catch (e) {
+          console.warn("[web3] getNetwork fallback failed", e);
+        }
+      }
+      setIsCorrectNetwork(ok);
+    } catch (e) {
+      console.warn("[web3] checkNetwork failed", e);
       setIsCorrectNetwork(false);
     }
   }, []);
+
+  const overrideNetworkCheck = useCallback(() => {
+    console.log("[web3] User manually overrode network check");
+    setIsCorrectNetwork(true);
+  }, []);
+
 
   const connectWallet = useCallback(async () => {
     if (typeof window === "undefined" || !(window as any).ethereum) {
@@ -116,7 +155,8 @@ export function Web3Provider({ children }: { children: ReactNode }) {
       }
     };
 
-    const handleChainChanged = () => {
+    const handleChainChanged = (chainId: string) => {
+      console.log("[web3] chainChanged event:", chainId);
       checkNetwork();
     };
 
@@ -141,7 +181,7 @@ export function Web3Provider({ children }: { children: ReactNode }) {
   }, [checkNetwork, clearWalletState, hasManuallyDisconnected, setupContract]);
 
   return (
-    <Web3Context.Provider value={{ account, isAdmin, isCorrectNetwork, isConnecting, contract, signer, connectWallet, disconnectWallet }}>
+    <Web3Context.Provider value={{ account, isAdmin, isCorrectNetwork, isConnecting, contract, signer, connectWallet, disconnectWallet, overrideNetworkCheck }}>
       {children}
     </Web3Context.Provider>
   );
