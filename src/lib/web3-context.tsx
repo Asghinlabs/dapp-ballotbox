@@ -155,7 +155,8 @@ export function Web3Provider({ children }: { children: ReactNode }) {
       }
     };
 
-    const handleChainChanged = () => {
+    const handleChainChanged = (chainId: string) => {
+      console.log("[web3] chainChanged event:", chainId);
       checkNetwork();
     };
 
