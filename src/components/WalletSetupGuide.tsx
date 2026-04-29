@@ -5,11 +5,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Button } from "@/components/ui/button";
 
 const DEMO_WALLETS: { label: string; key: string }[] = [
-  { label: "Demo Voter 1", key: "[PRIVATE_KEY_1]" },
-  { label: "Demo Voter 2", key: "[PRIVATE_KEY_2]" },
-  { label: "Demo Voter 3", key: "[PRIVATE_KEY_3]" },
-  { label: "Demo Voter 4", key: "[PRIVATE_KEY_4]" },
-  { label: "Demo Voter 5", key: "[PRIVATE_KEY_5]" },
+  { label: "Demo Voter 1", key: "0x83ff3d3886cd82c6ddec53b3b63ccf2c4f6cbc7755be4ea2417a1f614700de5f" },
+  { label: "Demo Voter 2", key: "0xab0053429156b8010acd01b8840d6e9339f9d3bca5f9167234511f0448ac03d4" },
+  { label: "Demo Voter 3", key: "0x14cad05bcc9b869a184b9d43e4b49530cd5df60c1bafdea121a9df4152fa02c6" },
+  { label: "Demo Voter 4", key: "0xec9743f2a27d371635ddc950205713a46fac3b600b48ce6ee94356d6a438278c" },
+  { label: "Demo Voter 5", key: "0xaa8b9f085fb0b2bc41896009b41ca8ba2dc150f9b03aecd17b162de1e61d7386" },
 ];
 
 const SEPOLIA_RPC = {
