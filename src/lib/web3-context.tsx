@@ -72,11 +72,33 @@ export function Web3Provider({ children }: { children: ReactNode }) {
     if (typeof window === "undefined" || !(window as any).ethereum) return;
     try {
       const chainId = await (window as any).ethereum.request({ method: "eth_chainId" });
-      setIsCorrectNetwork(parseInt(chainId, 16) === SEPOLIA_CHAIN_ID);
-    } catch {
+      const ok = isSepolia(chainId);
+      console.log("[web3] eth_chainId =", chainId, "→ isSepolia:", ok);
+      // Try ethers fallback if check fails (some mobile wallets misreport)
+      if (!ok) {
+        try {
+          const provider = new BrowserProvider((window as any).ethereum);
+          const net = await provider.getNetwork();
+          const okFallback = isSepolia(net.chainId);
+          console.log("[web3] provider.getNetwork().chainId =", net.chainId.toString(), "→ isSepolia:", okFallback);
+          setIsCorrectNetwork(okFallback);
+          return;
+        } catch (e) {
+          console.warn("[web3] getNetwork fallback failed", e);
+        }
+      }
+      setIsCorrectNetwork(ok);
+    } catch (e) {
+      console.warn("[web3] checkNetwork failed", e);
       setIsCorrectNetwork(false);
     }
   }, []);
+
+  const overrideNetworkCheck = useCallback(() => {
+    console.log("[web3] User manually overrode network check");
+    setIsCorrectNetwork(true);
+  }, []);
+
 
   const connectWallet = useCallback(async () => {
     if (typeof window === "undefined" || !(window as any).ethereum) {
