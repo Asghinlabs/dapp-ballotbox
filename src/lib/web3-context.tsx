@@ -11,6 +11,7 @@ interface Web3ContextType {
   signer: Signer | null;
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
+  overrideNetworkCheck: () => void;
 }
 
 const Web3Context = createContext<Web3ContextType>({
@@ -22,7 +23,23 @@ const Web3Context = createContext<Web3ContextType>({
   signer: null,
   connectWallet: async () => {},
   disconnectWallet: () => {},
+  overrideNetworkCheck: () => {},
 });
+
+const SEPOLIA_HEX = "0xaa36a7";
+
+function isSepolia(chainId: unknown): boolean {
+  if (typeof chainId === "string") {
+    const lower = chainId.toLowerCase();
+    if (lower === SEPOLIA_HEX) return true;
+    // Some mobile wallets return decimal as string
+    const parsed = lower.startsWith("0x") ? parseInt(lower, 16) : parseInt(lower, 10);
+    return parsed === SEPOLIA_CHAIN_ID;
+  }
+  if (typeof chainId === "number") return chainId === SEPOLIA_CHAIN_ID;
+  if (typeof chainId === "bigint") return Number(chainId) === SEPOLIA_CHAIN_ID;
+  return false;
+}
 
 export function useWeb3() {
   return useContext(Web3Context);
