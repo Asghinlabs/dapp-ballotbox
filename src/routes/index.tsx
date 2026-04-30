@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { Lock, CheckCircle2, Wallet } from "lucide-react";
-import { useWeb3 } from "@/lib/web3-context";
+import { useWeb3, setForceSepolia, isForceSepoliaEnabled } from "@/lib/web3-context";
 import { useContract } from "@/hooks/use-contract";
 import { fetchElectionsReadOnly } from "@/lib/read-contract";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,24 @@ function HomePage() {
   const [votedFor, setVotedFor] = useState<Record<string, string>>({});
   const [voterStatus, setVoterStatus] = useState<{ isRegistered: boolean; isApproved: boolean } | null>(null);
   const [expandedResults, setExpandedResults] = useState<Record<number, boolean>>({});
+  const [forceSepoliaOn, setForceSepoliaOn] = useState(false);
+
+  useEffect(() => {
+    setForceSepoliaOn(isForceSepoliaEnabled());
+  }, []);
+
+  const handleEnableForceSepolia = () => {
+    setForceSepolia(true);
+    setForceSepoliaOn(true);
+    overrideNetworkCheck();
+    toast.success("Force Sepolia Mode enabled — network checks bypassed");
+  };
+
+  const handleResetForceSepolia = () => {
+    setForceSepolia(false);
+    setForceSepoliaOn(false);
+    toast.info("Force Sepolia Mode disabled. Reload to re-check network.");
+  };
 
   const loadElections = useCallback(async () => {
     setFetchingElections(true);
@@ -130,6 +148,24 @@ function HomePage() {
           </Button>
           <p className="mt-2 text-xs text-muted-foreground">Tap to connect your wallet and participate</p>
           <WalletSetupGuide />
+
+          <div className="mt-5 border-t border-border/40 pt-4">
+            <p className="text-xs text-muted-foreground mb-2">
+              📱 On mobile and MetaMask isn't detecting Sepolia correctly?
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleEnableForceSepolia}
+              disabled={forceSepoliaOn}
+              className="w-full border-primary/40 bg-primary/5 text-primary hover:bg-primary/10 font-semibold"
+            >
+              {forceSepoliaOn ? "✓ Force Sepolia Mode Active" : "⚡ Force Sepolia Mode"}
+            </Button>
+            <p className="mt-1.5 text-[11px] text-muted-foreground">
+              Bypasses network detection. Only use if your wallet is already on Sepolia.
+            </p>
+          </div>
         </div>
       ) : (
         <div className="mb-8 rounded-2xl border border-success/30 bg-success/5 p-4 sm:p-5 flex items-center gap-3">
@@ -252,6 +288,27 @@ function HomePage() {
           )}
         </>
       )}
+
+      <footer className="mt-16 border-t border-border/40 pt-6 pb-4 text-center">
+        <p className="text-xs text-muted-foreground">
+          ChainVote · Sepolia Testnet
+        </p>
+        {forceSepoliaOn && (
+          <div className="mt-3 inline-flex flex-col items-center gap-1.5">
+            <span className="text-[11px] text-warning font-medium">
+              ⚡ Force Sepolia Mode is active
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleResetForceSepolia}
+              className="h-7 text-xs text-muted-foreground hover:text-foreground"
+            >
+              Reset network override
+            </Button>
+          </div>
+        )}
+      </footer>
     </div>
   );
 }
