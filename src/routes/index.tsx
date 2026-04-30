@@ -288,6 +288,27 @@ function HomePage() {
           )}
         </>
       )}
+
+      <footer className="mt-16 border-t border-border/40 pt-6 pb-4 text-center">
+        <p className="text-xs text-muted-foreground">
+          ChainVote · Sepolia Testnet
+        </p>
+        {forceSepoliaOn && (
+          <div className="mt-3 inline-flex flex-col items-center gap-1.5">
+            <span className="text-[11px] text-warning font-medium">
+              ⚡ Force Sepolia Mode is active
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleResetForceSepolia}
+              className="h-7 text-xs text-muted-foreground hover:text-foreground"
+            >
+              Reset network override
+            </Button>
+          </div>
+        )}
+      </footer>
     </div>
   );
 }
