@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { Lock, CheckCircle2, Wallet } from "lucide-react";
-import { useWeb3 } from "@/lib/web3-context";
+import { useWeb3, setForceSepolia, isForceSepoliaEnabled } from "@/lib/web3-context";
 import { useContract } from "@/hooks/use-contract";
 import { fetchElectionsReadOnly } from "@/lib/read-contract";
 import { Button } from "@/components/ui/button";
