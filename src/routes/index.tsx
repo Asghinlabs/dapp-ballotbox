@@ -40,6 +40,24 @@ function HomePage() {
   const [votedFor, setVotedFor] = useState<Record<string, string>>({});
   const [voterStatus, setVoterStatus] = useState<{ isRegistered: boolean; isApproved: boolean } | null>(null);
   const [expandedResults, setExpandedResults] = useState<Record<number, boolean>>({});
+  const [forceSepoliaOn, setForceSepoliaOn] = useState(false);
+
+  useEffect(() => {
+    setForceSepoliaOn(isForceSepoliaEnabled());
+  }, []);
+
+  const handleEnableForceSepolia = () => {
+    setForceSepolia(true);
+    setForceSepoliaOn(true);
+    overrideNetworkCheck();
+    toast.success("Force Sepolia Mode enabled — network checks bypassed");
+  };
+
+  const handleResetForceSepolia = () => {
+    setForceSepolia(false);
+    setForceSepoliaOn(false);
+    toast.info("Force Sepolia Mode disabled. Reload to re-check network.");
+  };
 
   const loadElections = useCallback(async () => {
     setFetchingElections(true);
