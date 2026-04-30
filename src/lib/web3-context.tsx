@@ -91,12 +91,16 @@ export function Web3Provider({ children }: { children: ReactNode }) {
   }, []);
 
   const checkNetwork = useCallback(async () => {
+    if (getForceSepolia()) {
+      console.log("[web3] forceSepolia flag enabled — bypassing network check");
+      setIsCorrectNetwork(true);
+      return;
+    }
     if (typeof window === "undefined" || !(window as any).ethereum) return;
     try {
       const chainId = await (window as any).ethereum.request({ method: "eth_chainId" });
       const ok = isSepolia(chainId);
       console.log("[web3] eth_chainId =", chainId, "→ isSepolia:", ok);
-      // Try ethers fallback if check fails (some mobile wallets misreport)
       if (!ok) {
         try {
           const provider = new BrowserProvider((window as any).ethereum);
