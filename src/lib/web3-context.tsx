@@ -27,6 +27,28 @@ const Web3Context = createContext<Web3ContextType>({
 });
 
 const SEPOLIA_HEX = "0xaa36a7";
+const FORCE_SEPOLIA_KEY = "forceSepolia";
+
+function getForceSepolia(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(FORCE_SEPOLIA_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function setForceSepolia(value: boolean) {
+  if (typeof window === "undefined") return;
+  try {
+    if (value) window.localStorage.setItem(FORCE_SEPOLIA_KEY, "true");
+    else window.localStorage.removeItem(FORCE_SEPOLIA_KEY);
+  } catch {}
+}
+
+export function isForceSepoliaEnabled(): boolean {
+  return getForceSepolia();
+}
 
 function isSepolia(chainId: unknown): boolean {
   if (typeof chainId === "string") {
