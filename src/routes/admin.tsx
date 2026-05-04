@@ -269,7 +269,17 @@ function AdminPage() {
 
       {/* ============ CREATE TAB ============ */}
       {tab === "create" && (
-        <div className="grid gap-8 lg:grid-cols-2">
+        <>
+          <div className="mb-6 glass rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold">Quick start: seed a demo election</p>
+              <p className="text-xs text-muted-foreground">Prefills the form with the Departmental Representative Election 2026 + 3 candidates.</p>
+            </div>
+            <Button size="sm" variant="outline" onClick={handleSeedDemo} className="border-primary/40 text-primary">
+              Prefill Demo Election
+            </Button>
+          </div>
+          <div className="grid gap-8 lg:grid-cols-2">
           <div className="glass rounded-2xl p-6">
             <h2 className="mb-4 font-display text-lg font-bold">New Election</h2>
             <div className="space-y-4">
