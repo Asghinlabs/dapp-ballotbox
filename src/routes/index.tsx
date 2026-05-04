@@ -309,8 +309,19 @@ function HomePage() {
       )}
 
       <footer className="mt-16 border-t border-border/40 pt-6 pb-4 text-center">
-        <p className="text-xs text-muted-foreground">
-          ChainVote · Sepolia Testnet
+        <p className="text-xs text-muted-foreground sm:text-sm">
+          © 2026 AYEMELONG SELOBIE GHISLAIN — HTTC, Department of Computer Science, University of Bamenda
+        </p>
+        <p className="mt-1.5 text-[11px] text-muted-foreground">
+          Contract:{" "}
+          <a
+            href={`https://sepolia.etherscan.io/address/${CONTRACT_ADDRESS}`}
+            target="_blank"
+            rel="noreferrer"
+            className="font-mono text-primary/80 hover:text-primary hover:underline break-all"
+          >
+            {CONTRACT_ADDRESS}
+          </a>
         </p>
         {forceSepoliaOn && (
           <div className="mt-3 inline-flex flex-col items-center gap-1.5">
