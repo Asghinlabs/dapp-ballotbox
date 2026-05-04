@@ -339,7 +339,11 @@ function AdminPage() {
             </div>
           </div>
         </div>
+        </>
       )}
+
+      {/* ============ PROFILE TAB ============ */}
+      {tab === "profile" && <ProfilePictureAdmin />}
 
       {/* ============ ELECTIONS TAB ============ */}
       {tab === "elections" && (
