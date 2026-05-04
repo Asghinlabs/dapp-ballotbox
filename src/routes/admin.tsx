@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CountdownTimer } from "@/components/CountdownTimer";
+import { ProfilePictureAdmin } from "@/components/ProfilePictureAdmin";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,7 +46,7 @@ function AdminPage() {
   } = useContract();
 
   const [elections, setElections] = useState<Election[]>([]);
-  const [tab, setTab] = useState<"elections" | "create" | "voters" | "candidates">("elections");
+  const [tab, setTab] = useState<"elections" | "create" | "voters" | "candidates" | "profile">("elections");
   const [deletedIds, setDeletedIds] = useState<Set<number>>(new Set());
 
   // Create election form
@@ -199,7 +200,28 @@ function AdminPage() {
     { key: "create" as const, label: "Create" },
     { key: "voters" as const, label: "Voters", count: pendingVoters.length },
     { key: "candidates" as const, label: "Candidates" },
+    { key: "profile" as const, label: "Profile Picture" },
   ];
+
+  const handleSeedDemo = () => {
+    setTitle("Departmental Representative Election 2026");
+    setDescription("Vote for your next departmental representative. Blockchain-secured voting demonstration.");
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 1);
+    const end = new Date(now);
+    end.setDate(end.getDate() + 7);
+    const fmt = (d: Date) => {
+      const pad = (n: number) => String(n).padStart(2, "0");
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+    setStartDate(fmt(now));
+    setEndDate(fmt(end));
+    setCandidates([
+      { name: "Alice Nkem", description: "Computer Science major with focus on cybersecurity" },
+      { name: "Brian Tita", description: "Software engineering major, advocates for tech workshops" },
+      { name: "Carol Mbarga", description: "Information systems major, focuses on student welfare" },
+    ]);
+  };
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -247,7 +269,17 @@ function AdminPage() {
 
       {/* ============ CREATE TAB ============ */}
       {tab === "create" && (
-        <div className="grid gap-8 lg:grid-cols-2">
+        <>
+          <div className="mb-6 glass rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold">Quick start: seed a demo election</p>
+              <p className="text-xs text-muted-foreground">Prefills the form with the Departmental Representative Election 2026 + 3 candidates.</p>
+            </div>
+            <Button size="sm" variant="outline" onClick={handleSeedDemo} className="border-primary/40 text-primary">
+              Prefill Demo Election
+            </Button>
+          </div>
+          <div className="grid gap-8 lg:grid-cols-2">
           <div className="glass rounded-2xl p-6">
             <h2 className="mb-4 font-display text-lg font-bold">New Election</h2>
             <div className="space-y-4">
@@ -307,7 +339,11 @@ function AdminPage() {
             </div>
           </div>
         </div>
+        </>
       )}
+
+      {/* ============ PROFILE TAB ============ */}
+      {tab === "profile" && <ProfilePictureAdmin />}
 
       {/* ============ ELECTIONS TAB ============ */}
       {tab === "elections" && (
