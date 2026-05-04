@@ -149,25 +149,6 @@ function HomePage() {
             {isConnecting ? "Connecting..." : "🔒 CONNECT TO VOTE"}
           </Button>
           <p className="mt-2 text-xs text-muted-foreground">Tap to connect your wallet and participate</p>
-          <WalletSetupGuide />
-
-          <div className="mt-5 border-t border-border/40 pt-4">
-            <p className="text-xs text-muted-foreground mb-2">
-              📱 On mobile and MetaMask isn't detecting Sepolia correctly?
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleEnableForceSepolia}
-              disabled={forceSepoliaOn}
-              className="w-full border-primary/40 bg-primary/5 text-primary hover:bg-primary/10 font-semibold"
-            >
-              {forceSepoliaOn ? "✓ Force Sepolia Mode Active" : "⚡ Force Sepolia Mode"}
-            </Button>
-            <p className="mt-1.5 text-[11px] text-muted-foreground">
-              Bypasses network detection. Only use if your wallet is already on Sepolia.
-            </p>
-          </div>
         </div>
       ) : (
         <div className="mb-8 rounded-2xl border border-success/30 bg-success/5 p-4 sm:p-5 flex items-center gap-3">
