@@ -290,6 +290,26 @@ function HomePage() {
         </>
       )}
 
+      {!account && (
+        <div className="mt-10 glass rounded-2xl p-5 text-center border border-border/40">
+          <p className="text-xs text-muted-foreground mb-2">
+            📱 On mobile and MetaMask isn't detecting Sepolia correctly?
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleEnableForceSepolia}
+            disabled={forceSepoliaOn}
+            className="w-full sm:w-auto border-primary/40 bg-primary/5 text-primary hover:bg-primary/10 font-semibold"
+          >
+            {forceSepoliaOn ? "✓ Force Sepolia Mode Active" : "⚡ Force Sepolia Mode"}
+          </Button>
+          <p className="mt-1.5 text-[11px] text-muted-foreground">
+            Bypasses network detection. Only use if your wallet is already on Sepolia.
+          </p>
+        </div>
+      )}
+
       <footer className="mt-16 border-t border-border/40 pt-6 pb-4 text-center">
         <p className="text-xs text-muted-foreground sm:text-sm">
           © 2026 AYEMELONG SELOBIE GHISLAIN — HTTC, Department of Computer Science, University of Bamenda
