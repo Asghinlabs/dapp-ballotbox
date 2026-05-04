@@ -8,6 +8,8 @@ import { fetchElectionsReadOnly } from "@/lib/read-contract";
 import { Button } from "@/components/ui/button";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { WalletSetupGuide } from "@/components/WalletSetupGuide";
+import { AboutProject } from "@/components/AboutProject";
+import { CONTRACT_ADDRESS } from "@/lib/contract";
 import type { Election } from "@/hooks/use-contract";
 
 export const Route = createFileRoute("/")({
