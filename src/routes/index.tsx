@@ -195,6 +195,23 @@ function HomePage() {
         </div>
       ) : (
         <>
+          <div className="mb-10 grid grid-cols-3 gap-3 sm:gap-4">
+            <div className="glass rounded-xl p-4 text-center">
+              <p className="font-display text-2xl font-bold text-success sm:text-3xl">{activeElections.length}</p>
+              <p className="text-xs text-muted-foreground">Active</p>
+            </div>
+            <div className="glass rounded-xl p-4 text-center">
+              <p className="font-display text-2xl font-bold text-warning sm:text-3xl">{upcomingElections.length}</p>
+              <p className="text-xs text-muted-foreground">Upcoming</p>
+            </div>
+            <div className="glass rounded-xl p-4 text-center">
+              <p className="font-display text-2xl font-bold text-destructive sm:text-3xl">{endedElections.length}</p>
+              <p className="text-xs text-muted-foreground">Completed</p>
+            </div>
+          </div>
+
+          <AboutProject />
+
           <section className="mb-12">
             <h2 className="mb-6 flex items-center gap-2 font-display text-2xl font-bold">
               <span className="inline-block h-2 w-2 rounded-full bg-success animate-pulse" />
