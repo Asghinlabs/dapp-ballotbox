@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useWeb3 } from "@/lib/web3-context";
 import { useContract } from "@/hooks/use-contract";
 import { CountdownTimer } from "@/components/CountdownTimer";
+import { AboutProject } from "@/components/AboutProject";
 import type { Election } from "@/hooks/use-contract";
 
 export const Route = createFileRoute("/voter-view")({
@@ -20,7 +21,6 @@ function VoterViewPage() {
   const { fetchElections } = useContract();
   const [elections, setElections] = useState<Election[]>([]);
   const [fetching, setFetching] = useState(false);
-  const [showPast, setShowPast] = useState(false);
 
   const load = useCallback(async () => {
     setFetching(true);
@@ -44,9 +44,12 @@ function VoterViewPage() {
   }
 
   const now = Math.floor(Date.now() / 1000);
-  const activeElections = elections.filter((e) => e.isActive);
-  const upcomingElections = elections.filter((e) => !e.isActive && e.startTime > now);
-  const pastElections = elections.filter((e) => !e.isActive && (e.resultsPublished || e.endTime <= now));
+  const isEnded = (e: Election) => e.resultsPublished || (!e.isActive && e.endTime > 0 && e.endTime <= now);
+  const isUpcoming = (e: Election) => !e.isActive && !isEnded(e) && e.startTime > now;
+
+  const activeElections = elections.filter((e) => e.isActive && !isEnded(e));
+  const upcomingElections = elections.filter(isUpcoming);
+  const pastElections = elections.filter(isEnded);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -55,12 +58,14 @@ function VoterViewPage() {
         <p className="text-sm font-medium text-accent">Admin Preview Mode — This is how voters see the elections. All interactions are disabled.</p>
       </div>
 
-      <h1 className="mb-2 font-display text-4xl font-bold">
-        <span className="text-gradient">Decentralized</span> Voting
-      </h1>
-      <p className="mb-8 max-w-2xl text-muted-foreground">
-        Cast your vote securely on the Ethereum blockchain. Every vote is transparent, immutable, and verifiable.
-      </p>
+      <div className="mb-10">
+        <h1 className="font-display text-4xl font-bold sm:text-5xl">
+          <span className="text-gradient">Decentralized</span> Voting
+        </h1>
+        <p className="mt-3 max-w-2xl text-muted-foreground">
+          Cast your vote securely on the Ethereum blockchain. Every vote is transparent, immutable, and verifiable.
+        </p>
+      </div>
 
       {fetching ? (
         <div className="flex justify-center py-12">
@@ -68,46 +73,83 @@ function VoterViewPage() {
         </div>
       ) : (
         <>
-          {activeElections.length > 0 && (
-            <section className="mb-12">
-              <h2 className="mb-6 flex items-center gap-2 font-display text-2xl font-bold">
-                <span className="inline-block h-2 w-2 rounded-full bg-success animate-pulse" />
-                Active Elections
-              </h2>
+          <div className="mb-10 grid grid-cols-3 gap-3 sm:gap-4">
+            <div className="glass rounded-xl p-4 text-center">
+              <p className="font-display text-2xl font-bold text-success sm:text-3xl">{activeElections.length}</p>
+              <p className="text-xs text-muted-foreground">Active</p>
+            </div>
+            <div className="glass rounded-xl p-4 text-center">
+              <p className="font-display text-2xl font-bold text-warning sm:text-3xl">{upcomingElections.length}</p>
+              <p className="text-xs text-muted-foreground">Upcoming</p>
+            </div>
+            <div className="glass rounded-xl p-4 text-center">
+              <p className="font-display text-2xl font-bold text-destructive sm:text-3xl">{pastElections.length}</p>
+              <p className="text-xs text-muted-foreground">Completed</p>
+            </div>
+          </div>
+
+          <AboutProject />
+
+          <section className="mb-12">
+            <h2 className="mb-6 flex items-center gap-2 font-display text-2xl font-bold">
+              <span className="inline-block h-2 w-2 rounded-full bg-success animate-pulse" />
+              Active Elections
+              <span className="text-sm font-normal text-muted-foreground">({activeElections.length})</span>
+            </h2>
+            {activeElections.length === 0 ? (
+              <div className="glass rounded-2xl p-6 text-sm text-muted-foreground">No active elections right now.</div>
+            ) : (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {activeElections.map((el) => (
                   <PreviewElectionCard key={el.id} election={el} />
                 ))}
               </div>
-            </section>
-          )}
+            )}
+          </section>
 
-          {upcomingElections.length > 0 && (
-            <section className="mb-12">
-              <h2 className="mb-6 font-display text-2xl font-bold">Upcoming Elections</h2>
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {upcomingElections.map((el) => (
-                  <PreviewElectionCard key={el.id} election={el} upcoming />
-                ))}
-              </div>
-            </section>
-          )}
+          <details className="mb-6 glass rounded-2xl group">
+            <summary className="cursor-pointer list-none p-5 flex items-center justify-between gap-2">
+              <h2 className="flex items-center gap-2 font-display text-xl font-bold">
+                <span className="inline-block h-2 w-2 rounded-full bg-warning" />
+                Upcoming Elections
+                <span className="text-sm font-normal text-muted-foreground">({upcomingElections.length})</span>
+              </h2>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-muted-foreground transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div className="px-5 pb-5">
+              {upcomingElections.length === 0 ? (
+                <div className="text-sm text-muted-foreground">No upcoming elections.</div>
+              ) : (
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {upcomingElections.map((el) => (
+                    <PreviewElectionCard key={el.id} election={el} upcoming />
+                  ))}
+                </div>
+              )}
+            </div>
+          </details>
 
-          <div className="mb-6">
-            <button onClick={() => setShowPast(!showPast)} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              {showPast ? "▾ Hide" : "▸ Show"} Past Elections ({pastElections.length})
-            </button>
-          </div>
-
-          {showPast && pastElections.length > 0 && (
-            <section className="mb-12">
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {pastElections.map((el) => (
-                  <PreviewElectionCard key={el.id} election={el} past />
-                ))}
-              </div>
-            </section>
-          )}
+          <details className="mb-12 glass rounded-2xl group">
+            <summary className="cursor-pointer list-none p-5 flex items-center justify-between gap-2">
+              <h2 className="flex items-center gap-2 font-display text-xl font-bold">
+                <span className="inline-block h-2 w-2 rounded-full bg-destructive" />
+                Ended Elections
+                <span className="text-sm font-normal text-muted-foreground">({pastElections.length})</span>
+              </h2>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-muted-foreground transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div className="px-5 pb-5">
+              {pastElections.length === 0 ? (
+                <div className="text-sm text-muted-foreground">No ended elections yet.</div>
+              ) : (
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {pastElections.map((el) => (
+                    <PreviewElectionCard key={el.id} election={el} past />
+                  ))}
+                </div>
+              )}
+            </div>
+          </details>
 
           {elections.length === 0 && (
             <div className="glass rounded-2xl p-12 text-center">
