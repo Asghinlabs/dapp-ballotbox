@@ -7,21 +7,26 @@ import {
   SIZE_LABEL,
   SIZE_PX,
   clearProfilePicture,
-  getProfilePicture,
-  setProfilePicture,
+  fetchProfilePicture,
+  updateProfilePictureSize,
+  uploadProfilePicture,
   type ProfileSize,
 } from "@/lib/profile-picture";
 
 export function ProfilePictureAdmin() {
   const [src, setSrc] = useState<string | null>(null);
   const [size, setSize] = useState<ProfileSize>("md");
-  const [dirty, setDirty] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingPreview, setPendingPreview] = useState<string | null>(null);
+  const [sizeDirty, setSizeDirty] = useState(false);
+  const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const cur = getProfilePicture();
-    setSrc(cur.src);
-    setSize(cur.size);
+    fetchProfilePicture().then((p) => {
+      setSrc(p.src);
+      setSize(p.size);
+    });
   }, []);
 
   const handleFile = (file: File) => {
@@ -35,29 +40,57 @@ export function ProfilePictureAdmin() {
     }
     const reader = new FileReader();
     reader.onload = () => {
-      setSrc(typeof reader.result === "string" ? reader.result : null);
-      setDirty(true);
+      setPendingPreview(typeof reader.result === "string" ? reader.result : null);
+      setPendingFile(file);
     };
     reader.onerror = () => toast.error("Failed to read image file");
     reader.readAsDataURL(file);
   };
 
-  const handleSave = () => {
-    setProfilePicture({ src, size });
-    setDirty(false);
-    toast.success("Profile picture settings saved");
+  const handleSave = async () => {
+    setBusy(true);
+    try {
+      if (pendingFile) {
+        const result = await uploadProfilePicture(pendingFile, size);
+        setSrc(result.src);
+        setPendingFile(null);
+        setPendingPreview(null);
+        if (fileRef.current) fileRef.current.value = "";
+      } else if (sizeDirty) {
+        await updateProfilePictureSize(size);
+      }
+      setSizeDirty(false);
+      toast.success("Profile picture saved for all visitors");
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to save. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const handleRemove = () => {
-    setSrc(null);
-    setSize("md");
-    clearProfilePicture();
-    if (fileRef.current) fileRef.current.value = "";
-    setDirty(false);
-    toast.info("Reverted to default avatar");
+  const handleRemove = async () => {
+    setBusy(true);
+    try {
+      await clearProfilePicture();
+      setSrc(null);
+      setSize("md");
+      setPendingFile(null);
+      setPendingPreview(null);
+      if (fileRef.current) fileRef.current.value = "";
+      setSizeDirty(false);
+      toast.info("Profile picture removed");
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to remove picture");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const px = SIZE_PX[size];
+  const previewSrc = pendingPreview ?? src;
+  const dirty = !!pendingFile || sizeDirty;
 
   return (
     <div className="grid gap-8 lg:grid-cols-2">
@@ -77,6 +110,9 @@ export function ProfilePictureAdmin() {
               }}
               className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
             />
+            <p className="mt-1.5 text-[11px] text-muted-foreground">
+              Saved to cloud storage — visible to every visitor on every device.
+            </p>
           </div>
 
           <div>
@@ -88,7 +124,7 @@ export function ProfilePictureAdmin() {
                   type="button"
                   onClick={() => {
                     setSize(s);
-                    setDirty(true);
+                    setSizeDirty(true);
                   }}
                   className={`rounded-lg border px-3 py-2 text-xs font-medium transition-all ${
                     size === s
@@ -103,10 +139,10 @@ export function ProfilePictureAdmin() {
           </div>
 
           <div className="flex flex-wrap gap-2 pt-2">
-            <Button onClick={handleSave} disabled={!dirty} className="gradient-primary border-0 text-primary-foreground">
-              Save
+            <Button onClick={handleSave} disabled={!dirty || busy} className="gradient-primary border-0 text-primary-foreground">
+              {busy ? "Saving…" : "Save"}
             </Button>
-            <Button variant="outline" onClick={handleRemove} className="border-destructive/40 text-destructive hover:bg-destructive/10">
+            <Button variant="outline" onClick={handleRemove} disabled={busy} className="border-destructive/40 text-destructive hover:bg-destructive/10">
               Remove Picture
             </Button>
           </div>
@@ -120,8 +156,8 @@ export function ProfilePictureAdmin() {
             className="overflow-hidden rounded-full border-2 border-primary/40 shadow-lg"
             style={{ width: px, height: px }}
           >
-            {src ? (
-              <img src={src} alt="Preview" className="h-full w-full object-cover" />
+            {previewSrc ? (
+              <img src={previewSrc} alt="Preview" className="h-full w-full object-cover" />
             ) : (
               <div
                 className="flex h-full w-full items-center justify-center font-display font-bold text-primary-foreground gradient-primary"
