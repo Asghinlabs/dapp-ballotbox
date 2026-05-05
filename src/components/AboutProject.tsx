@@ -1,12 +1,22 @@
 import { useEffect, useState } from "react";
-import { getProfilePicture, onProfilePictureChange, SIZE_PX, type ProfilePicture } from "@/lib/profile-picture";
+import { fetchProfilePicture, onProfilePictureChange, SIZE_PX, type ProfilePicture } from "@/lib/profile-picture";
 
 export function AboutProject() {
   const [pic, setPic] = useState<ProfilePicture>({ src: null, size: "md" });
 
   useEffect(() => {
-    setPic(getProfilePicture());
-    return onProfilePictureChange(() => setPic(getProfilePicture()));
+    let alive = true;
+    const load = () => {
+      fetchProfilePicture().then((p) => {
+        if (alive) setPic(p);
+      });
+    };
+    load();
+    const off = onProfilePictureChange(load);
+    return () => {
+      alive = false;
+      off();
+    };
   }, []);
 
   const px = SIZE_PX[pic.size];
