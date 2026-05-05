@@ -59,7 +59,7 @@ export async function uploadProfilePicture(file: File, size: ProfileSize): Promi
 
   const { error: setErr } = await supabase
     .from("app_settings")
-    .upsert({ key: SETTINGS_KEY, value: { path, size } as SettingsValue, updated_at: new Date().toISOString() });
+    .upsert({ key: SETTINGS_KEY, value: { path, size } as unknown as import("@/integrations/supabase/types").Json, updated_at: new Date().toISOString() });
   if (setErr) throw setErr;
 
   notifyChange();
@@ -94,7 +94,7 @@ export async function clearProfilePicture(): Promise<void> {
   }
   await supabase.from("app_settings").upsert({
     key: SETTINGS_KEY,
-    value: { path: null, size: "md" } as SettingsValue,
+    value: { path: null, size: "md" } as unknown as import("@/integrations/supabase/types").Json,
     updated_at: new Date().toISOString(),
   });
   notifyChange();
