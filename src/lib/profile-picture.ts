@@ -76,7 +76,7 @@ export async function updateProfilePictureSize(size: ProfileSize): Promise<void>
   const next: SettingsValue = { path: cur?.path ?? null, size };
   await supabase.from("app_settings").upsert({
     key: SETTINGS_KEY,
-    value: next,
+    value: next as unknown as import("@/integrations/supabase/types").Json,
     updated_at: new Date().toISOString(),
   });
   notifyChange();
