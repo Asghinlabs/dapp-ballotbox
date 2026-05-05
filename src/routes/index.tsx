@@ -222,65 +222,75 @@ function HomePage() {
             )}
           </section>
 
-          <section className="mb-12">
-            <h2 className="mb-6 flex items-center gap-2 font-display text-2xl font-bold">
-              <span className="inline-block h-2 w-2 rounded-full bg-warning" />
-              Upcoming Elections
-              <span className="text-sm font-normal text-muted-foreground">({upcomingElections.length})</span>
-            </h2>
-            {upcomingElections.length === 0 ? (
-              <div className="glass rounded-2xl p-6 text-sm text-muted-foreground">No upcoming elections.</div>
-            ) : (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {upcomingElections.map((election) => (
-                  <ElectionCard
-                    key={election.id}
-                    election={election}
-                    onVote={handleVote}
-                    votingId={votingId}
-                    loading={loading}
-                    canVote={false}
-                    isConnected={!!account}
-                    onConnect={connectWallet}
-                    isConnecting={isConnecting}
-                    upcoming
-                  />
-                ))}
-              </div>
-            )}
-          </section>
+          <details className="mb-6 glass rounded-2xl group">
+            <summary className="cursor-pointer list-none p-5 flex items-center justify-between gap-2">
+              <h2 className="flex items-center gap-2 font-display text-xl font-bold">
+                <span className="inline-block h-2 w-2 rounded-full bg-warning" />
+                Upcoming Elections
+                <span className="text-sm font-normal text-muted-foreground">({upcomingElections.length})</span>
+              </h2>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-muted-foreground transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div className="px-5 pb-5">
+              {upcomingElections.length === 0 ? (
+                <div className="text-sm text-muted-foreground">No upcoming elections.</div>
+              ) : (
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {upcomingElections.map((election) => (
+                    <ElectionCard
+                      key={election.id}
+                      election={election}
+                      onVote={handleVote}
+                      votingId={votingId}
+                      loading={loading}
+                      canVote={false}
+                      isConnected={!!account}
+                      onConnect={connectWallet}
+                      isConnecting={isConnecting}
+                      upcoming
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </details>
 
-          <section className="mb-12">
-            <h2 className="mb-6 flex items-center gap-2 font-display text-2xl font-bold">
-              <span className="inline-block h-2 w-2 rounded-full bg-destructive" />
-              Ended Elections
-              <span className="text-sm font-normal text-muted-foreground">({endedElections.length})</span>
-            </h2>
-            {endedElections.length === 0 ? (
-              <div className="glass rounded-2xl p-6 text-sm text-muted-foreground">No ended elections yet.</div>
-            ) : (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {endedElections.map((election) => (
-                  <ElectionCard
-                    key={election.id}
-                    election={election}
-                    onVote={handleVote}
-                    votingId={votingId}
-                    loading={loading}
-                    canVote={false}
-                    isConnected={!!account}
-                    onConnect={connectWallet}
-                    isConnecting={isConnecting}
-                    past
-                    expanded={!!expandedResults[election.id]}
-                    onToggleResults={() =>
-                      setExpandedResults((prev) => ({ ...prev, [election.id]: !prev[election.id] }))
-                    }
-                  />
-                ))}
-              </div>
-            )}
-          </section>
+          <details className="mb-12 glass rounded-2xl group">
+            <summary className="cursor-pointer list-none p-5 flex items-center justify-between gap-2">
+              <h2 className="flex items-center gap-2 font-display text-xl font-bold">
+                <span className="inline-block h-2 w-2 rounded-full bg-destructive" />
+                Ended Elections
+                <span className="text-sm font-normal text-muted-foreground">({endedElections.length})</span>
+              </h2>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-muted-foreground transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div className="px-5 pb-5">
+              {endedElections.length === 0 ? (
+                <div className="text-sm text-muted-foreground">No ended elections yet.</div>
+              ) : (
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {endedElections.map((election) => (
+                    <ElectionCard
+                      key={election.id}
+                      election={election}
+                      onVote={handleVote}
+                      votingId={votingId}
+                      loading={loading}
+                      canVote={false}
+                      isConnected={!!account}
+                      onConnect={connectWallet}
+                      isConnecting={isConnecting}
+                      past
+                      expanded={!!expandedResults[election.id]}
+                      onToggleResults={() =>
+                        setExpandedResults((prev) => ({ ...prev, [election.id]: !prev[election.id] }))
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </details>
 
           {elections.length === 0 && (
             <div className="glass rounded-2xl p-12 text-center">
