@@ -16,7 +16,6 @@ import {
 export function ProfilePictureAdmin() {
   const [src, setSrc] = useState<string | null>(null);
   const [size, setSize] = useState<ProfileSize>("md");
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [pendingPreview, setPendingPreview] = useState<string | null>(null);
   const [sizeDirty, setSizeDirty] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -29,7 +28,7 @@ export function ProfilePictureAdmin() {
     });
   }, []);
 
-  const handleFile = (file: File) => {
+  const handleFile = async (file: File) => {
     if (!ALLOWED_TYPES.includes(file.type)) {
       toast.error("Unsupported format. Use JPG, PNG, or GIF.");
       return;
@@ -38,25 +37,29 @@ export function ProfilePictureAdmin() {
       toast.error("Image is too large. Maximum size is 2MB.");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      setPendingPreview(typeof reader.result === "string" ? reader.result : null);
-      setPendingFile(file);
-    };
-    reader.onerror = () => toast.error("Failed to read image file");
-    reader.readAsDataURL(file);
+    const previewUrl = URL.createObjectURL(file);
+    setPendingPreview(previewUrl);
+    setBusy(true);
+    try {
+      const result = await uploadProfilePicture(file, size);
+      setSrc(result.src);
+      setPendingPreview(null);
+      if (fileRef.current) fileRef.current.value = "";
+      setSizeDirty(false);
+      toast.success("Profile picture uploaded for all visitors");
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to upload. Please try again.");
+    } finally {
+      URL.revokeObjectURL(previewUrl);
+      setBusy(false);
+    }
   };
 
   const handleSave = async () => {
     setBusy(true);
     try {
-      if (pendingFile) {
-        const result = await uploadProfilePicture(pendingFile, size);
-        setSrc(result.src);
-        setPendingFile(null);
-        setPendingPreview(null);
-        if (fileRef.current) fileRef.current.value = "";
-      } else if (sizeDirty) {
+      if (sizeDirty) {
         await updateProfilePictureSize(size);
       }
       setSizeDirty(false);
@@ -75,7 +78,6 @@ export function ProfilePictureAdmin() {
       await clearProfilePicture();
       setSrc(null);
       setSize("md");
-      setPendingFile(null);
       setPendingPreview(null);
       if (fileRef.current) fileRef.current.value = "";
       setSizeDirty(false);
@@ -90,7 +92,7 @@ export function ProfilePictureAdmin() {
 
   const px = SIZE_PX[size];
   const previewSrc = pendingPreview ?? src;
-  const dirty = !!pendingFile || sizeDirty;
+  const dirty = sizeDirty;
 
   return (
     <div className="grid gap-8 lg:grid-cols-2">
@@ -111,7 +113,7 @@ export function ProfilePictureAdmin() {
               className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
             />
             <p className="mt-1.5 text-[11px] text-muted-foreground">
-              Saved to cloud storage — visible to every visitor on every device.
+              Selecting a file uploads it to cloud storage immediately, making it visible on every device.
             </p>
           </div>
 
@@ -140,7 +142,7 @@ export function ProfilePictureAdmin() {
 
           <div className="flex flex-wrap gap-2 pt-2">
             <Button onClick={handleSave} disabled={!dirty || busy} className="gradient-primary border-0 text-primary-foreground">
-              {busy ? "Saving…" : "Save"}
+              {busy ? "Saving…" : "Save Size"}
             </Button>
             <Button variant="outline" onClick={handleRemove} disabled={busy} className="border-destructive/40 text-destructive hover:bg-destructive/10">
               Remove Picture
